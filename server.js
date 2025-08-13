@@ -1,21 +1,18 @@
 import express from "express";
 import path from "path";
 import { fileURLToPath } from "url";
-import dotenv from "dotenv";
-import fetch from "node-fetch";
 
-dotenv.config();
-
+// Fix __dirname in ES modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
 app.use(express.json());
 
-// Serve the "public" folder
+// Serve static files (index.html, CSS, JS)
 app.use(express.static(path.join(__dirname, "public")));
 
-// API endpoint for chat
+// AI Chat endpoint
 app.post("/api/chat", async (req, res) => {
   try {
     const { messages } = req.body;
@@ -32,11 +29,23 @@ app.post("/api/chat", async (req, res) => {
       }),
     });
 
+    if (!apiRes.ok) {
+      throw new Error(`OpenAI API error: ${apiRes.status}`);
+    }
+
     const data = await apiRes.json();
-    res.json({ reply: data.choices[0]?.message?.content || "No reply." });
+    const reply = data.choices[0]?.message?.content || "Sorry, I have no response.";
+
+    res.json({ reply });
   } catch (err) {
-    res.status(500).json({ reply: "Error: " + err.message });
+    console.error(err);
+    res.status(500).json({ reply: "⚠️ Error connecting to AI." });
   }
+});
+
+// Render index.html for any other route
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
 const PORT = process.env.PORT || 3000;
