@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>KILLERYT AI – Study Helper</title>
+  <style>
+    /* ===== Modern Chat Design ===== */
+    :root {
+      --primary: #6e48aa;
+      --primary-dark: #4b2d7f;
+      --user-bubble: #6e48aa;
+      --ai-bubble: #f0f0f0;
+      --text-dark: #333;
+      --text-light: #fff;
+      --bg: #f9f9f9;
+      --card-bg: #fff;
+      --shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      --radius: 12px;
+      --spacing: 16px;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --ai-bubble: #2d2d2d;
+        --text-dark: #f0f0f0;
+        --bg: #1a1a1a;
+        --card-bg: #252525;
+      }
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--text-dark);
+      line-height: 1.5;
+      display: flex;
+      justify-content: center;
+      padding: 20px;
+      min-height: 100vh;
+    }
+
+    .app {
+      width: 100%;
+      max-width: 800px;
+      height: 90vh;
+      display: flex;
+      flex-direction: column;
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .topbar {
+      padding: var(--spacing);
+      background: var(--primary);
+      color: white;
+      text-align: center;
+    }
+
+    .topbar h1 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .tags {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .tags span {
+      background: rgba(255, 255, 255, 0.2);
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+    }
+
+    .chat {
+      flex: 1;
+      padding: var(--spacing);
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .bubble {
+      max-width: 85%;
+      padding: 12px 16px;
+      border-radius: var(--radius);
+      position: relative;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .user {
+      align-self: flex-end;
+      background: var(--user-bubble);
+      color: var(--text-light);
+      border-bottom-right-radius: 4px;
+    }
+
+    .assistant {
+      align-self: flex-start;
+      background: var(--ai-bubble);
+      border-bottom-left-radius: 4px;
+    }
+
+    .typing {
+      display: inline-flex;
+      align-items: center;
+      height: 20px;
+    }
+
+    .typing span {
+      width: 8px;
+      height: 8px;
+      margin: 0 2px;
+      background: #999;
+      border-radius: 50%;
+      display: inline-block;
+      animation: bounce 1.4s infinite ease-in-out both;
+    }
+
+    .typing span:nth-child(1) { animation-delay: -0.32s; }
+    .typing span:nth-child(2) { animation-delay: -0.16s; }
+
+    @keyframes bounce {
+      0%, 80%, 100% { transform: scale(0); }
+      40% { transform: scale(1); }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .composer {
+      display: flex;
+      padding: var(--spacing);
+      border-top: 1px solid rgba(0, 0, 0, 0.1);
+      background: var(--card-bg);
+    }
+
+    .composer input {
+      flex: 1;
+      padding: 12px 16px;
+      border: 1px solid rgba(0, 0, 0, 0.1);
+      border-radius: 24px;
+      font-size: 1rem;
+      outline: none;
+      transition: border 0.2s;
+    }
+
+    .composer input:focus {
+      border-color: var(--primary);
+    }
+
+    .composer button {
+      width: 48px;
+      height: 48px;
+      margin-left: 8px;
+      border: none;
+      border-radius: 50%;
+      background: var(--primary);
+      color: white;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .composer button:hover {
+      background: var(--primary-dark);
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header class="topbar">
+      <h1>KILLERYT AI</h1>
+      <div class="tags">
+        <span>Math</span><span>Science</span><span>History</span><span>Coding</span>
+      </div>
+    </header>
+
+    <section id="chat" class="chat"></section>
+
+    <form id="chat-form" class="composer" autocomplete="off">
+      <input id="message" type="text" placeholder="Ask anything… e.g. 'Solve 5x + 3 = 18 step by step'" required />
+      <button id="send" type="submit" aria-label="Send">➤</button>
+    </form>
+  </main>
+
+  <script>
+    const chatEl = document.getElementById("chat");
+    const form = document.getElementById("chat-form");
+    const input = document.getElementById("message");
+
+    // ---- simple local history ----
+    const KEY = "schoolai_history_v1";
+    let history = JSON.parse(localStorage.getItem(KEY) || "[]");
+    const messages = [];
+
+    function saveHistory() {
+      localStorage.setItem(KEY, JSON.stringify(history));
+    }
+
+    function bubble(role, text) {
+      const div = document.createElement("div");
+      div.className = `bubble ${role}`;
+      
+      if (text === '...') {
+        div.innerHTML = '<div class="typing"><span></span><span></span><span></span></div>';
+      } else {
+        div.innerText = text;
+      }
+      
+      chatEl.appendChild(div);
+      chatEl.scrollTop = chatEl.scrollHeight;
+    }
+
+    function renderHistory() {
+      chatEl.innerHTML = "";
+      history.forEach(item => bubble(item.role, item.text));
+    }
+
+    function addUser(text) {
+      history.push({ role: "user", text });
+      messages.push({ role: "user", content: text });
+      saveHistory();
+      bubble("user", text);
+    }
+
+    function addAssistant(text) {
+      history.push({ role: "assistant", text });
+      saveHistory();
+      bubble("assistant", text);
+    }
+
+    async function sendPrompt(prompt) {
+      addUser(prompt);
+      input.value = "";
+      input.focus();
+
+      // Show typing indicator
+      bubble("assistant", "...");
+      const typingEl = chatEl.lastChild;
+
+      try {
+        const res = await fetch("/api/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ messages }),
+        });
+
+        if (!res.ok) throw new Error("Network response was not ok");
+        const data = await res.json();
+        const reply = data.reply || "Sorry, I couldn't generate a reply.";
+        
+        // Remove typing indicator and show real response
+        chatEl.removeChild(typingEl);
+        addAssistant(reply);
+        messages.push({ role: "assistant", content: reply });
+      } catch (e) {
+        chatEl.removeChild(typingEl);
+        addAssistant("⚠️ Error: " + (e.message || "Something went wrong."));
+      }
+    }
+
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const prompt = input.value.trim();
+      if (!prompt) return;
+      sendPrompt(prompt);
+    });
+
+    input.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        form.requestSubmit();
+      }
+    });
+
+    // Seed greeting once
+    if (history.length === 0) {
+      const welcome = "Hi! I’m KYT AI. Ask me any study question — math question and equations, science questions, history facts, or coding help.";
+      addAssistant(welcome);
+    } else {
+      renderHistory();
+    }
+  </script>
+</body>
+</html>
