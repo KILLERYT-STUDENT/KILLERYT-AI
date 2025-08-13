@@ -2,14 +2,13 @@ import express from "express";
 import path from "path";
 import { fileURLToPath } from "url";
 
-// Fix __dirname in ES modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
 app.use(express.json());
 
-// Serve static files (index.html, CSS, JS)
+// Serve static files (frontend)
 app.use(express.static(path.join(__dirname, "public")));
 
 // AI Chat endpoint
@@ -34,16 +33,16 @@ app.post("/api/chat", async (req, res) => {
     }
 
     const data = await apiRes.json();
-    const reply = data.choices[0]?.message?.content || "Sorry, I have no response.";
+    const reply = data.choices[0]?.message?.content || "No reply from AI";
 
     res.json({ reply });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ reply: "⚠️ Error connecting to AI." });
+    res.status(500).json({ reply: "⚠️ Error connecting to AI" });
   }
 });
 
-// Render index.html for any other route
+// Default route
 app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
 });
