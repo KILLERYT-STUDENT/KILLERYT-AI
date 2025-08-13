@@ -1,51 +1,44 @@
-// server.js
 import express from "express";
-import path from "path";
-import { fileURLToPath } from "url";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 const app = express();
+const PORT = process.env.PORT || 3000;
+
+// Middleware
 app.use(express.json());
+app.use(express.static("public"));
 
-// Serve static files (index.html, CSS, JS)
-app.use(express.static(path.join(__dirname, "public")));
-
-// AI Chat endpoint
+// API endpoint for AI chat
 app.post("/api/chat", async (req, res) => {
   try {
-    const { messages } = req.body;
+    const messages = req.body.messages || [];
 
-    const apiRes = await fetch("https://api.openai.com/v1/chat/completions", {
+    // Send to OpenAI
+    const openaiRes = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`
+        "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`,
+        "Content-Type": "application/json"
       },
       body: JSON.stringify({
         model: "gpt-3.5-turbo",
-        messages
+        messages: messages
       })
     });
 
-    const data = await apiRes.json();
-    const reply = data.choices?.[0]?.message?.content || "No reply from AI";
+    const data = await openaiRes.json();
 
+    if (data.error) {
+      return res.status(400).json({ reply: `⚠️ OpenAI Error: ${data.error.message}` });
+    }
+
+    const reply = data.choices?.[0]?.message?.content || "No response from AI.";
     res.json({ reply });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ reply: "⚠️ Error connecting to AI" });
+  } catch (error) {
+    res.status(500).json({ reply: `⚠️ Server Error: ${error.message}` });
   }
 });
 
-// Fallback route (for SPA or index.html)
-app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "index.html"));
-});
-
 // Start server
-const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`🚀 Server running on port ${PORT}`);
 });
