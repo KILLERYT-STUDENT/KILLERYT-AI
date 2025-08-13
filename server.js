@@ -2,13 +2,14 @@ import express from "express";
 import path from "path";
 import { fileURLToPath } from "url";
 
+// Fix __dirname in ES modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
 app.use(express.json());
 
-// Serve static files (frontend)
+// Serve static files (index.html, CSS, JS)
 app.use(express.static(path.join(__dirname, "public")));
 
 // AI Chat endpoint
@@ -16,6 +17,7 @@ app.post("/api/chat", async (req, res) => {
   try {
     const { messages } = req.body;
 
+    // Use built-in fetch in Node 18+
     const apiRes = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -42,7 +44,7 @@ app.post("/api/chat", async (req, res) => {
   }
 });
 
-// Default route
+// Fallback route (for SPA or index.html)
 app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
 });
