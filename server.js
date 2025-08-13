@@ -1,38 +1,43 @@
-// server.js
-const express = require("express");
-const OpenAI = require("openai");
-require("dotenv").config();
+import express from "express";
+import path from "path";
+import { fileURLToPath } from "url";
+import dotenv from "dotenv";
+import fetch from "node-fetch";
+
+dotenv.config();
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 app.use(express.json());
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
-});
+// Serve the "public" folder
+app.use(express.static(path.join(__dirname, "public")));
 
-// Root route to prevent "Cannot GET /" error
-app.get("/", (req, res) => {
-  res.send("🚀 KILERYT-AI server is running! Use POST /chat to interact.");
-});
-
-// Chat endpoint
-app.post("/chat", async (req, res) => {
+// API endpoint for chat
+app.post("/api/chat", async (req, res) => {
   try {
-    const { message } = req.body;
+    const { messages } = req.body;
 
-    const completion = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
-      messages: [{ role: "user", content: message }]
+    const apiRes = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: "gpt-3.5-turbo",
+        messages,
+      }),
     });
 
-    res.json({ reply: completion.choices[0].message.content });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Something went wrong" });
+    const data = await apiRes.json();
+    res.json({ reply: data.choices[0]?.message?.content || "No reply." });
+  } catch (err) {
+    res.status(500).json({ reply: "Error: " + err.message });
   }
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+app.listen(PORT, () => console.log(`✅ Server running on port ${PORT}`));
