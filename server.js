@@ -10,6 +10,11 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 });
 
+// ✅ This will handle GET requests to "/"
+app.get("/", (req, res) => {
+  res.send("🚀 KILERYT-AI server is running!");
+});
+
 app.post("/chat", async (req, res) => {
   try {
     const { message } = req.body;
