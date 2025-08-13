@@ -1,7 +1,7 @@
+// server.js
 import express from "express";
 import path from "path";
 import { fileURLToPath } from "url";
-import fetch from "node-fetch"; // if using Node < 18; remove if Node >= 18
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -21,27 +21,30 @@ app.post("/api/chat", async (req, res) => {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+        "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`
       },
       body: JSON.stringify({
         model: "gpt-3.5-turbo",
-        messages,
-      }),
+        messages
+      })
     });
 
     const data = await apiRes.json();
-    res.json(data);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Something went wrong" });
+    const reply = data.choices?.[0]?.message?.content || "No reply from AI";
+
+    res.json({ reply });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ reply: "⚠️ Error connecting to AI" });
   }
 });
 
 // Fallback route (for SPA or index.html)
-app.get("/*", (req, res) => {
+app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
+// Start server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
