@@ -1,19 +1,28 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KYT AI</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>KILLERYT AI – Study Helper</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="chat-container">
-        <h1>KYT AI</h1>
-        <div id="chat-box"></div>
-        <input type="text" id="user-input" placeholder="Type your message...">
-        <button id="send-btn">Send</button>
-    </div>
-    <script src="script.js"></script>
+  <main class="app">
+    <header class="topbar">
+      <h1>KILLERYT AI</h1>
+      <div class="tags">
+        <span>Math</span><span>Science</span><span>History</span><span>Coding</span>
+      </div>
+    </header>
+
+    <section id="chat" class="chat"></section>
+
+    <form id="chat-form" class="composer" autocomplete="off">
+      <input id="message" type="text" placeholder="Ask anything… e.g. 'Solve 5x + 3 = 18 step by step'" required />
+      <button id="send" type="submit" aria-label="Send">➤</button>
+    </form>
+  </main>
+
+  <script src="script.js"></script>
 </body>
 </html>
-
