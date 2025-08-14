@@ -1,9 +1,9 @@
 import express from "express";
 import fetch from "node-fetch";
 import dotenv from "dotenv";
-import cors from "cors"; // <-- Added
 import path from "path";
 import { fileURLToPath } from "url";
+import cors from "cors"; // ✅ Import CORS
 
 dotenv.config();
 
@@ -11,12 +11,12 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
-
-// Enable CORS for all origins (you can restrict later if you want)
-app.use(cors());
-
-// Parse incoming JSON
 app.use(express.json());
+
+// ✅ Allow requests from anywhere (can be restricted to your portfolio domain)
+app.use(cors({
+  origin: "*", // You can replace "*" with "https://your-portfolio-domain.com"
+}));
 
 // Serve the public folder
 app.use(express.static(path.join(__dirname, "public")));
@@ -26,6 +26,7 @@ app.post("/api/chat", async (req, res) => {
   try {
     const { messages } = req.body;
 
+    // Call your AI API
     const aiRes = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
