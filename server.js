@@ -6,21 +6,26 @@ import { fileURLToPath } from "url";
 
 dotenv.config();
 
+// Fix dirname for ES modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
 app.use(express.json());
 
-// Serve the public folder
+// ✅ Serve the public folder (make sure 'public' is in the same folder as server.js)
 app.use(express.static(path.join(__dirname, "public")));
+
+// ✅ Route to serve index.html on root "/"
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "index.html"));
+});
 
 // Chat endpoint
 app.post("/api/chat", async (req, res) => {
   try {
     const { messages } = req.body;
 
-    // Call your AI API (replace with actual endpoint)
     const aiRes = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -49,4 +54,4 @@ app.post("/api/chat", async (req, res) => {
 
 // Start server
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(PORT, () => console.log(`✅ Server running at http://localhost:${PORT}`));
