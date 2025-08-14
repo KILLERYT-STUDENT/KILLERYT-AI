@@ -6,20 +6,14 @@ import { fileURLToPath } from "url";
 
 dotenv.config();
 
-// Fix dirname for ES modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
 app.use(express.json());
 
-// ✅ Serve the public folder (make sure 'public' is in the same folder as server.js)
+// Serve the public folder
 app.use(express.static(path.join(__dirname, "public")));
-
-// ✅ Route to serve index.html on root "/"
-app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "index.html"));
-});
 
 // Chat endpoint
 app.post("/api/chat", async (req, res) => {
@@ -52,6 +46,11 @@ app.post("/api/chat", async (req, res) => {
   }
 });
 
+// Catch-all route for Render to serve index.html
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "index.html"));
+});
+
 // Start server
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`✅ Server running at http://localhost:${PORT}`));
+app.listen(PORT, () => console.log(`✅ Server running on port ${PORT}`));
