@@ -1,36 +1,175 @@
+:root {
+  --primary: #6e48aa;
+  --primary-dark: #4b2d7f;
+  --user-bubble: #6e48aa;
+  --ai-bubble: #f0f0f0;
+  --text-dark: #333;
+  --text-light: #fff;
+  --bg: #f9f9f9;
+  --card-bg: #fff;
+  --shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  --radius: 12px;
+  --spacing: 16px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ai-bubble: #2d2d2d;
+    --text-dark: #f0f0f0;
+    --bg: #1a1a1a;
+    --card-bg: #252525;
+  }
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
 body {
-    font-family: Arial, sans-serif;
-    background-color: #121212;
-    color: white;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
+  font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--bg);
+  color: var(--text-dark);
+  line-height: 1.5;
+  display: flex;
+  justify-content: center;
+  padding: 20px;
+  min-height: 100vh;
 }
-.chat-container {
-    width: 400px;
-    background: #1e1e1e;
-    padding: 20px;
-    border-radius: 10px;
+
+.app {
+  width: 100%;
+  max-width: 800px;
+  height: 90vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--card-bg);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
 }
-#chat-box {
-    height: 300px;
-    overflow-y: auto;
-    border: 1px solid #333;
-    padding: 10px;
-    margin-bottom: 10px;
+
+.topbar {
+  padding: var(--spacing);
+  background: var(--primary);
+  color: white;
+  text-align: center;
 }
-input, button {
-    padding: 10px;
-    border: none;
-    outline: none;
+
+.topbar h1 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 8px;
 }
-#user-input {
-    width: 70%;
+
+.tags {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  flex-wrap: wrap;
 }
-#send-btn {
-    width: 28%;
-    background-color: #4CAF50;
-    color: white;
-    cursor: pointer;
+
+.tags span {
+  background: rgba(255, 255, 255, 0.2);
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+}
+
+.chat {
+  flex: 1;
+  padding: var(--spacing);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.bubble {
+  max-width: 85%;
+  padding: 12px 16px;
+  border-radius: var(--radius);
+  position: relative;
+  animation: fadeIn 0.3s ease;
+}
+
+.user {
+  align-self: flex-end;
+  background: var(--user-bubble);
+  color: var(--text-light);
+  border-bottom-right-radius: 4px;
+}
+
+.assistant {
+  align-self: flex-start;
+  background: var(--ai-bubble);
+  border-bottom-left-radius: 4px;
+}
+
+.typing {
+  display: inline-flex;
+  align-items: center;
+  height: 20px;
+}
+
+.typing span {
+  width: 8px;
+  height: 8px;
+  margin: 0 2px;
+  background: #999;
+  border-radius: 50%;
+  display: inline-block;
+  animation: bounce 1.4s infinite ease-in-out both;
+}
+
+.typing span:nth-child(1) { animation-delay: -0.32s; }
+.typing span:nth-child(2) { animation-delay: -0.16s; }
+
+@keyframes bounce {
+  0%, 80%, 100% { transform: scale(0); }
+  40% { transform: scale(1); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.composer {
+  display: flex;
+  padding: var(--spacing);
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  background: var(--card-bg);
+}
+
+.composer input {
+  flex: 1;
+  padding: 12px 16px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 24px;
+  font-size: 1rem;
+  outline: none;
+  transition: border 0.2s;
+}
+
+.composer input:focus {
+  border-color: var(--primary);
+}
+
+.composer button {
+  width: 48px;
+  height: 48px;
+  margin-left: 8px;
+  border: none;
+  border-radius: 50%;
+  background: var(--primary);
+  color: white;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.composer button:hover {
+  background: var(--primary-dark);
 }
