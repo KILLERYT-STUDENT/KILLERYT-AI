@@ -5,38 +5,48 @@ import path from "path";
 import { fileURLToPath } from "url";
 
 dotenv.config();
-const app = express();
-const PORT = process.env.PORT || 10000;
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-app.use(express.static(path.join(__dirname, "public")));
+const app = express();
 app.use(express.json());
 
-// AI API endpoint
+// Serve the public folder
+app.use(express.static(path.join(__dirname, "public")));
+
+// Chat endpoint
 app.post("/api/chat", async (req, res) => {
-    try {
-        const userMessage = req.body.message;
-        const response = await fetch("https://api.openai.com/v1/chat/completions", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`,
-            },
-            body: JSON.stringify({
-                model: "gpt-3.5-turbo",
-                messages: [{ role: "user", content: userMessage }],
-            }),
-        });
+  try {
+    const { messages } = req.body;
 
-        const data = await response.json();
-        res.json({ reply: data.choices[0].message.content });
-    } catch (error) {
-        res.status(500).json({ error: "Something went wrong" });
+    // Call your AI API (replace with actual endpoint)
+    const aiRes = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`
+      },
+      body: JSON.stringify({
+        model: "gpt-3.5-turbo",
+        messages,
+      })
+    });
+
+    if (!aiRes.ok) {
+      const errText = await aiRes.text();
+      throw new Error(errText);
     }
+
+    const aiData = await aiRes.json();
+    const reply = aiData.choices?.[0]?.message?.content || "Sorry, I couldn't generate a reply.";
+
+    res.json({ reply });
+  } catch (err) {
+    res.status(500).json({ reply: `Error: ${err.message}` });
+  }
 });
 
-app.listen(PORT, () => {
-    console.log(`✅ Server running on port ${PORT}`);
-});
+// Start server
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
