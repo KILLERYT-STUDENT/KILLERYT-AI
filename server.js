@@ -1,6 +1,7 @@
 import express from "express";
 import fetch from "node-fetch";
 import dotenv from "dotenv";
+import cors from "cors"; // <-- Added
 import path from "path";
 import { fileURLToPath } from "url";
 
@@ -10,6 +11,11 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
+
+// Enable CORS for all origins (you can restrict later if you want)
+app.use(cors());
+
+// Parse incoming JSON
 app.use(express.json());
 
 // Serve the public folder
@@ -46,11 +52,6 @@ app.post("/api/chat", async (req, res) => {
   }
 });
 
-// Catch-all route for Render to serve index.html
-app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "index.html"));
-});
-
 // Start server
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`✅ Server running on port ${PORT}`));
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
