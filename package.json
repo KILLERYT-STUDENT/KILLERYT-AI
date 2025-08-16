@@ -1,6 +1,7 @@
 {
-  "name": "ai-server",
+  "name": "killeryt-ai",
   "version": "1.0.0",
+  "description": "AI chatbot server using OpenAI API",
   "main": "server.js",
   "type": "module",
   "scripts": {
