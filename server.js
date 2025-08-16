@@ -1,58 +1,37 @@
-import express from "express";
-import fetch from "node-fetch";
-import dotenv from "dotenv";
-import path from "path";
-import { fileURLToPath } from "url";
-import cors from "cors"; // ✅ Import CORS
-
-dotenv.config();
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const express = require("express");
+const cors = require("cors");
+const bodyParser = require("body-parser");
+const OpenAI = require("openai");
 
 const app = express();
-app.use(express.json());
+const port = process.env.PORT || 5000;
 
-// ✅ Allow requests from anywhere (can be restricted to your portfolio domain)
-app.use(cors({
-  origin: "*", // You can replace "*" with "https://your-portfolio-domain.com"
-}));
+app.use(cors());
+app.use(bodyParser.json());
 
-// Serve the public folder
-app.use(express.static(path.join(__dirname, "public")));
+// Setup OpenAI with your API key
+const client = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY, // Make sure your .env has this
+});
 
 // Chat endpoint
-app.post("/api/chat", async (req, res) => {
+app.post("/chat", async (req, res) => {
   try {
-    const { messages } = req.body;
+    const userMessage = req.body.message;
 
-    // Call your AI API
-    const aiRes = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`
-      },
-      body: JSON.stringify({
-        model: "gpt-3.5-turbo",
-        messages,
-      })
+    const response = await client.responses.create({
+      model: "gpt-5",
+      input: userMessage,
     });
 
-    if (!aiRes.ok) {
-      const errText = await aiRes.text();
-      throw new Error(errText);
-    }
-
-    const aiData = await aiRes.json();
-    const reply = aiData.choices?.[0]?.message?.content || "Sorry, I couldn't generate a reply.";
-
-    res.json({ reply });
-  } catch (err) {
-    res.status(500).json({ reply: `Error: ${err.message}` });
+    res.json({ reply: response.output_text });
+  } catch (error) {
+    console.error("Error with OpenAI:", error);
+    res.status(500).json({ error: "Failed to fetch response" });
   }
 });
 
 // Start server
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(port, () => {
+  console.log(`Server running on port ${port}`);
+});
