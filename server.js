@@ -1,50 +1,52 @@
-// server.js (ESM compatible)
+// server.js
 import express from "express";
-import bodyParser from "body-parser";
 import path from "path";
 import { fileURLToPath } from "url";
+import dotenv from "dotenv";
 import OpenAI from "openai";
 
+dotenv.config();
 const app = express();
-const port = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3000;
 
-// ESM fix for __dirname
+// Setup __dirname in ES modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // Middleware
-app.use(bodyParser.json());
+app.use(express.json());
 
-// Serve static frontend files from "public"
+// Serve static files (index.html, style.css, script.js inside "public" folder)
 app.use(express.static(path.join(__dirname, "public")));
+
+// Route for homepage
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "index.html"));
+});
 
 // OpenAI client
 const client = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-// Chat route (frontend calls this as /api/chat)
-app.post("/api/chat", async (req, res) => {
+// API endpoint for chat
+app.post("/chat", async (req, res) => {
   try {
-    const messages = req.body.messages;
+    const userMessage = req.body.message;
 
     const response = await client.responses.create({
       model: "gpt-5",
-      input: messages,
+      input: userMessage,
     });
 
     res.json({ reply: response.output_text });
   } catch (error) {
-    console.error("AI error:", error);
-    res.status(500).json({ error: "Something went wrong" });
+    console.error(error);
+    res.status(500).json({ reply: "Error: Something went wrong" });
   }
 });
 
-// Always serve index.html for any unknown route (for frontend refreshes)
-app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "index.html"));
-});
-
-app.listen(port, () => {
-  console.log(`✅ Server is running on port ${port}`);
+// Start server
+app.listen(PORT, () => {
+  console.log(`🚀 Server running at http://localhost:${PORT}`);
 });
