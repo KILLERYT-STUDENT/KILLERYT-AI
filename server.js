@@ -1,20 +1,25 @@
-const express = require("express");
-const cors = require("cors");
-const bodyParser = require("body-parser");
-const OpenAI = require("openai");
+// server.js (ESM compatible)
+
+import express from "express";
+import bodyParser from "body-parser";
+import OpenAI from "openai";
 
 const app = express();
-const port = process.env.PORT || 5000;
+const port = process.env.PORT || 3000;
 
-app.use(cors());
 app.use(bodyParser.json());
 
-// Setup OpenAI with your API key
+// OpenAI client
 const client = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY, // Make sure your .env has this
+  apiKey: process.env.OPENAI_API_KEY,
 });
 
-// Chat endpoint
+// Home route
+app.get("/", (req, res) => {
+  res.send("🚀 AI Server is running on Render!");
+});
+
+// Chat route
 app.post("/chat", async (req, res) => {
   try {
     const userMessage = req.body.message;
@@ -26,12 +31,11 @@ app.post("/chat", async (req, res) => {
 
     res.json({ reply: response.output_text });
   } catch (error) {
-    console.error("Error with OpenAI:", error);
-    res.status(500).json({ error: "Failed to fetch response" });
+    console.error("AI error:", error);
+    res.status(500).json({ error: "Something went wrong" });
   }
 });
 
-// Start server
 app.listen(port, () => {
-  console.log(`Server running on port ${port}`);
+  console.log(`✅ Server is running on port ${port}`);
 });
