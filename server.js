@@ -16,10 +16,10 @@ const __dirname = path.dirname(__filename);
 // Middleware
 app.use(express.json());
 
-// ✅ Serve only files inside "public" folder (NOT server.js)
+// Serve static files (make sure your index.html, style.css, script.js are inside "public" folder)
 app.use(express.static(path.join(__dirname, "public")));
 
-// Homepage
+// Fallback route for homepage
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
 });
