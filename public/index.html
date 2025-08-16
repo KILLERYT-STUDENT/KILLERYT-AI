@@ -1,28 +1,43 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>KILLERYT AI – Study Helper</title>
-  <link rel="stylesheet" href="style.css">
-</head>
-<body>
-  <main class="app">
-    <header class="topbar">
-      <h1>KILLERYT AI</h1>
-      <div class="tags">
-        <span>Math</span><span>Science</span><span>History</span><span>Coding</span>
-      </div>
-    </header>
+import express from "express";
+import OpenAI from "openai";
+import path from "path";
+import { fileURLToPath } from "url";
+import dotenv from "dotenv";
 
-    <section id="chat" class="chat"></section>
+dotenv.config();
+const app = express();
+const PORT = process.env.PORT || 3000;
 
-    <form id="chat-form" class="composer" autocomplete="off">
-      <input id="message" type="text" placeholder="Ask anything… e.g. 'Solve 5x + 3 = 18 step by step'" required />
-      <button id="send" type="submit" aria-label="Send">➤</button>
-    </form>
-  </main>
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-  <script src="script.js"></script>
-</body>
-</html>
+app.use(express.json());
+app.use(express.static(__dirname)); // serve index.html, style.css, script.js
+
+const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+// Serve homepage (index.html)
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "index.html"));
+});
+
+// API endpoint for chat
+app.post("/api/chat", async (req, res) => {
+  try {
+    const userMessage = req.body.message;
+
+    const response = await client.responses.create({
+      model: "gpt-5",
+      input: userMessage,
+    });
+
+    res.json({ reply: response.output_text });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ reply: "Error: Something went wrong" });
+  }
+});
+
+app.listen(PORT, () => {
+  console.log(`🚀 Server running at http://localhost:${PORT}`);
+});
