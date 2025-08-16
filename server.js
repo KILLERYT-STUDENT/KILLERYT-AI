@@ -2,10 +2,19 @@
 import express from "express";
 import path from "path";
 import { fileURLToPath } from "url";
-import dotenv from "dotenv";
 import OpenAI from "openai";
 
-dotenv.config();
+// Try to load dotenv only if available (local dev)
+let dotenvLoaded = false;
+try {
+  const dotenv = await import("dotenv");
+  dotenv.config();
+  dotenvLoaded = true;
+  console.log("✅ dotenv loaded (local dev mode)");
+} catch (err) {
+  console.log("ℹ️ dotenv not found, using Render env variables");
+}
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -41,7 +50,7 @@ app.post("/chat", async (req, res) => {
 
     res.json({ reply: response.output_text });
   } catch (error) {
-    console.error(error);
+    console.error("AI Error:", error);
     res.status(500).json({ reply: "Error: Something went wrong" });
   }
 });
